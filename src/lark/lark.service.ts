@@ -141,4 +141,70 @@ export class LarkService {
             this.logger.error('Failed to send text message', error);
         }
     }
+
+    async sendHelpMessage(chatId: string) {
+        const token = await this.getTenantAccessToken();
+        const url = `https://open.larksuite.com/open-apis/im/v1/messages?receive_id_type=chat_id`;
+
+        const cardContent = {
+            config: {
+                wide_screen_mode: true,
+            },
+            header: {
+                template: 'orange',
+                title: {
+                    content: '🤖 Bot Help Center',
+                    tag: 'plain_text',
+                },
+            },
+            elements: [
+                {
+                    tag: 'div',
+                    text: {
+                        tag: 'lark_md',
+                        content: 'I didn\'t understand that. Please use one of the available commands below:',
+                    }
+                },
+                {
+                    tag: 'div',
+                    fields: [
+                        {
+                            is_short: false,
+                            text: {
+                                tag: 'lark_md',
+                                content: `**📦 Search by Container Number:**\nTry typing: \`CNTR-0005\` or just \`005\``,
+                            },
+                        },
+                        {
+                            is_short: false,
+                            text: {
+                                tag: 'lark_md',
+                                content: `**📊 Search by Status:**\nTry typing: \`DELIVERED\`, \`GATE_IN\`, or \`ON_HOLD\``,
+                            },
+                        },
+                    ],
+                },
+            ],
+        };
+
+        try {
+            await axios.post(
+                url,
+                {
+                    receive_id: chatId,
+                    msg_type: 'interactive',
+                    content: JSON.stringify(cardContent),
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                },
+            );
+            this.logger.log(`Help message sent to ${chatId}`);
+
+        } catch (error) {
+            this.logger.error('Failed to send help message', error);
+        }
+    }
 }
